@@ -251,8 +251,12 @@
     modeBadge.textContent = MODE_BADGE_LABEL[mode] || "";
     clearSelection();
     clearDashboardFilter();
-    showWelcomePanel();
-    setPanelExpanded(window.innerWidth >= 860);
+    showWelcomePanel(true);
+    // Carte d'accueil toujours dépliée (même sur mobile, où le panneau est
+    // normalement replié en aperçu) : avec le voile qui assombrit la carte
+    // derrière elle, elle doit être entièrement visible dès l'arrivée dans
+    // le parcours plutôt que masquée sous la poignée du bottom sheet.
+    setPanelExpanded(true);
     if (mobileNav.classList.contains("open")) {
       mobileNav.classList.remove("open");
       menuToggle.setAttribute("aria-expanded", "false");
@@ -399,6 +403,7 @@
   // accessible par clic sur le zonage (ci-dessus), ou depuis les raccourcis
   // de zone du panneau d'accueil de ce parcours (showWelcomePanel).
   function renderZonePanel(code, zoneLabel) {
+    dismissWelcomeIntro();
     panelCloseBtn.hidden = false;
     const meta = ZONE_META[code] || { label: code, color: "#9e9e9e", desc: "" };
     panelZoneDot.style.background = meta.color;
@@ -434,6 +439,7 @@
   }
 
   function renderZoneFallbackPanel(p) {
+    dismissWelcomeIntro();
     panelCloseBtn.hidden = false;
     panelZoneDot.style.background = p.zoneColor;
     panelTitle.textContent = CONFIG.zoneShortNames[p.zoneCode]
@@ -541,6 +547,7 @@
   const panelZoneDot = document.getElementById("panel-zone-dot");
   const panelHandleBtn = document.getElementById("panel-handle");
   const panelCloseBtn = document.getElementById("panel-close");
+  const panelBackdrop = document.getElementById("panel-backdrop");
 
   function setPanelExpanded(expanded) {
     panel.classList.toggle("expanded", expanded);
@@ -553,8 +560,28 @@
 
   panelCloseBtn.addEventListener("click", () => {
     clearSelection();
-    showWelcomePanel();
+    showWelcomePanel(false);
   });
+
+  // --- Écran d'accueil du panneau : présenté en carte centrée au-dessus
+  //     d'un voile assombrissant la carte (voir .panel-welcome-intro /
+  //     .panel-backdrop, style.css), tant qu'aucun bâtiment ou zone n'a été
+  //     sélectionné. dismissWelcomeIntro() referme ce voile pour rendre la
+  //     carte pleinement interactive ; le panneau garde alors son même
+  //     contenu d'accueil, simplement ancré en latéral (cf. .info-panel de
+  //     base). Appelé au clic sur le voile, sur l'action « Explorer la
+  //     carte », et par défense en tête de chaque fonction de rendu d'une
+  //     sélection (renderBuildingPanel, renderZonePanel,
+  //     renderZoneFallbackPanel).
+  function dismissWelcomeIntro() {
+    panel.classList.remove("panel-welcome-intro");
+    panelBackdrop.classList.remove("visible");
+    setTimeout(() => {
+      panelBackdrop.hidden = true;
+    }, 220);
+  }
+
+  panelBackdrop.addEventListener("click", dismissWelcomeIntro);
 
   function clearSelection() {
     if (selectedLayer) {
@@ -893,6 +920,7 @@
   }
 
   function renderBuildingPanel(p) {
+    dismissWelcomeIntro();
     panelCloseBtn.hidden = false;
 
     if (!p.concerne) {
@@ -1086,11 +1114,11 @@
     }
 
     const bands = [
-      { id: "zonage", label: "Zonage", body: zonageBody, open: false },
-      { id: "profil", label: "Profil de mon bien", body: profilBody, open: false },
-      { id: "estimation", label: "Estimation de mon exposition au risque (inondation)", body: estimationBody, open: true },
-      { id: "mesures", label: "Mesures de protection et d'adaptation concernant mon bien", body: mesuresBody, open: false },
-      { id: "travaux", label: "Règles de travaux applicables à mes projets", body: travauxBody, open: false },
+      { id: "zonage", icon: "📍", label: "Zonage", body: zonageBody, open: false },
+      { id: "profil", icon: "🏠", label: "Profil de mon bien", body: profilBody, open: false },
+      { id: "estimation", icon: "🌊", label: "Estimation de mon exposition au risque (inondation)", body: estimationBody, open: true },
+      { id: "mesures", icon: "🛡️", label: "Mesures de protection et d'adaptation concernant mon bien", body: mesuresBody, open: false },
+      { id: "travaux", icon: "🏗️", label: "Règles de travaux applicables à mes projets", body: travauxBody, open: false },
     ];
 
     let html = `<div class="band-accordion">`;
@@ -1098,7 +1126,11 @@
       .map(
         (b) => `
       <details class="band-item band-item-${b.id}" ${b.open ? "open" : ""}>
-        <summary class="band-head"><span>${escapeHtml(b.label)}</span></summary>
+        <summary class="band-head">
+          <span class="band-head-icon" aria-hidden="true">${b.icon}</span>
+          <span class="band-head-label">${escapeHtml(b.label)}</span>
+          <span class="band-chevron" aria-hidden="true">⌄</span>
+        </summary>
         <div class="band-body">${b.body}</div>
       </details>
     `
@@ -1154,15 +1186,29 @@
     return `<div class="tech-row"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value))}</dd></div>`;
   }
 
-  function showWelcomePanel() {
+  // isIntro : true juste après le choix d'un parcours (setMode()) -> carte
+  // d'accueil centrée + voile (.panel-welcome-intro), pour une première
+  // impression claire. false quand on revient à l'accueil depuis un
+  // bâtiment/une zone déjà sélectionné (bouton ✕ du panneau) -> panneau
+  // d'accueil classique, ancré, sans voile, pour ne pas réinterrompre
+  // l'exploration déjà en cours de la carte.
+  function showWelcomePanel(isIntro) {
     panelCloseBtn.hidden = true;
+    if (isIntro) {
+      panel.classList.add("panel-welcome-intro");
+      panelBackdrop.hidden = false;
+      requestAnimationFrame(() => panelBackdrop.classList.add("visible"));
+    } else {
+      dismissWelcomeIntro();
+    }
 
     if (appMode === "services") {
       panelZoneDot.style.background = "var(--mode-services)";
       panelTitle.textContent = "Socle commun — toutes zones inondables";
       panelSubtitle.textContent = "Quint-Fonsegrives - PPRi Marcaissonne-Sauneseillonne";
       panelBody.innerHTML = `
-        <div class="intro-block">
+        <div class="intro-block intro-block-hero">
+          <div class="intro-hero-icon" aria-hidden="true">🗺️</div>
           <p>
             Cliquez sur une zone du zonage réglementaire (ou directement sur un
             bâtiment) pour afficher le socle commun applicable et ses
@@ -1179,10 +1225,17 @@
             )
             .join("")}
         </div>
+        <div class="welcome-cta">
+          <button type="button" class="btn primary" id="intro-dismiss-btn">🗺️ Explorer la carte</button>
+        </div>
       `;
       panelBody.querySelectorAll(".zone-chip").forEach((btn) => {
-        btn.addEventListener("click", () => renderZonePanel(btn.dataset.zone));
+        btn.addEventListener("click", () => {
+          dismissWelcomeIntro();
+          renderZonePanel(btn.dataset.zone);
+        });
       });
+      document.getElementById("intro-dismiss-btn").addEventListener("click", dismissWelcomeIntro);
       return;
     }
 
@@ -1190,7 +1243,8 @@
     panelTitle.textContent = "Mes obligations face au risque inondation";
     panelSubtitle.textContent = "Quint-Fonsegrives - PPRi Marcaissonne-Sauneseillonne";
     panelBody.innerHTML = `
-      <div class="intro-block">
+      <div class="intro-block intro-block-hero">
+        <div class="intro-hero-icon" aria-hidden="true">🌊</div>
         <p>
           Cliquez sur un bâtiment sur la carte, ou recherchez une adresse
           ci-dessus, pour connaître les obligations réglementaires liées au
@@ -1205,14 +1259,19 @@
         </p>`
         }
         <div class="welcome-cta">
-          <a class="btn primary" href="#" id="cta-locate">📍 Me localiser</a>
-          <a class="btn" href="glossaire.html">📖 Glossaire</a>
-          <a class="btn" href="faq.html">❓ Questions fréquentes</a>
+          <button type="button" class="btn primary" id="intro-dismiss-btn">🗺️ Explorer la carte</button>
+          <a class="btn" href="#" id="cta-locate">📍 Me localiser</a>
+        </div>
+        <div class="welcome-links">
+          <a href="glossaire.html">📖 Glossaire</a>
+          <a href="faq.html">❓ Questions fréquentes</a>
         </div>
       </div>
     `;
+    document.getElementById("intro-dismiss-btn").addEventListener("click", dismissWelcomeIntro);
     document.getElementById("cta-locate").addEventListener("click", (e) => {
       e.preventDefault();
+      dismissWelcomeIntro();
       geolocate();
     });
   }
