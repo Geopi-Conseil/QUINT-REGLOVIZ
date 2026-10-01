@@ -45,6 +45,21 @@
   --band-mesures: #c9ddc2;
   --band-travaux: #f3c8a6;
 
+  /* Codage obligatoire / recommandé / aides (mesures) et neuf / existant
+     (travaux) : couleur + icône + libellé, jamais la couleur seule (voir
+     bandeaux « Mesures » et « Règles de travaux », src/js/app.js). */
+  --color-mandatory: #b3261e;
+  --color-mandatory-bg: #fbeceb;
+  --color-mandatory-border: #f0cbc8;
+  --color-recommended: #0f6a5e;
+  --color-recommended-bg: #e9f4f2;
+  --color-recommended-border: #c7e6e0;
+  --color-aide: #8a5a1e;
+  --color-aide-bg: #f8f0e0;
+  --color-aide-border: #eaddba;
+  --color-neuf-bg: #eef3f8;
+  --color-existant-bg: #f8f3ea;
+
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -225,6 +240,7 @@ img { max-width: 100%; }
     border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.5);
     opacity: 0.92;
+    transition: background 0.15s ease, opacity 0.15s ease;
   }
   .app-header nav.nav-pills a:hover,
   .app-header nav.nav-pills a[aria-current="page"] {
@@ -338,9 +354,13 @@ img { max-width: 100%; }
   font-size: 14.5px;
   cursor: pointer;
   font-family: inherit;
+  transition: filter 0.15s ease, transform 0.1s ease;
 }
 
-.accueil-btn:hover { filter: brightness(1.08); }
+.accueil-btn:hover,
+.accueil-btn:focus-visible { filter: brightness(1.08); }
+
+.accueil-btn:active { transform: scale(0.98); }
 
 .accueil-btn-habitants { background: var(--mode-habitants); }
 .accueil-btn-elus { background: var(--mode-elus); }
@@ -692,6 +712,7 @@ body[data-mode="elus"] .dashboard-box {
   margin-bottom: 6px;
   font: inherit;
   color: var(--color-text);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .dashboard-tile:last-child {
@@ -876,6 +897,16 @@ body:not([data-mode="elus"]) .dashboard-wrapper { display: none; }
   text-align: left;
   cursor: pointer;
   font-family: inherit;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.zone-chip:hover,
+.zone-chip:focus-visible {
+  filter: brightness(1.08);
+}
+
+.zone-chip:active {
+  transform: scale(0.98);
 }
 
 .zone-chip[aria-pressed="true"] {
@@ -1077,6 +1108,12 @@ details.tech-details dd {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  transition: filter 0.15s ease;
+}
+
+.band-head:hover,
+.band-head:focus-visible {
+  filter: brightness(0.96);
 }
 
 .band-head::-webkit-details-marker { display: none; }
@@ -1232,7 +1269,7 @@ details.correction-block summary {
 /* ---------------- Mesures recommandées ou obligatoires ------------------- */
 
 .measure-block {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .measure-block:last-child {
@@ -1243,6 +1280,112 @@ details.correction-block summary {
   font-size: 0.85rem;
   margin: 0 0 4px;
   color: var(--color-primary-dark);
+}
+
+/* ------- Groupes de mesures : obligatoires / recommandées / aides -------
+   Distinction par couleur ET icône ET libellé (jamais la couleur seule),
+   chacune dans un encart teinté pour un regroupement visuel immédiat
+   (principe de proximité). */
+
+.measure-group {
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.measure-group:last-child {
+  margin-bottom: 0;
+}
+
+.measure-group-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+
+.measure-group-icon {
+  font-size: 0.95rem;
+}
+
+.measure-group .measure-block h4 {
+  color: inherit;
+}
+
+.measure-group-obligatoire {
+  background: var(--color-mandatory-bg);
+  border: 1px solid var(--color-mandatory-border);
+}
+
+.measure-group-obligatoire .measure-group-head {
+  color: var(--color-mandatory);
+}
+
+.measure-group-recommandee {
+  background: var(--color-recommended-bg);
+  border: 1px solid var(--color-recommended-border);
+}
+
+.measure-group-recommandee .measure-group-head {
+  color: var(--color-recommended);
+}
+
+.measure-group-aides {
+  background: var(--color-aide-bg);
+  border: 1px solid var(--color-aide-border);
+}
+
+.measure-group-aides .measure-group-head {
+  color: var(--color-aide);
+}
+
+/* --------- Règles de travaux : constructions nouvelles / existantes ----- */
+
+.travaux-card {
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.travaux-card:last-child {
+  margin-bottom: 0;
+}
+
+.travaux-card p {
+  font-size: 0.86rem;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.travaux-card p:last-child {
+  margin-bottom: 0;
+}
+
+.travaux-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 6px;
+}
+
+.travaux-icon {
+  font-size: 0.95rem;
+}
+
+.travaux-card-neuf {
+  background: var(--color-neuf-bg);
+}
+
+.travaux-card-existant {
+  background: var(--color-existant-bg);
 }
 
 .panel-close {
@@ -1277,6 +1420,7 @@ details.correction-block summary {
   text-decoration: none;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: filter 0.15s ease, border-color 0.15s ease;
 }
 
 .btn.primary {

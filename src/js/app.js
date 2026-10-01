@@ -613,6 +613,40 @@
     return `<span class="badge" style="background:${color}">${escapeHtml(text)}</span>`;
   }
 
+  // Classe un texte de mesure (diagnostic, zone refuge...) en obligatoire
+  // (true), recommandé/facultatif (false), ou non applicable (null, exclu
+  // des deux groupes) — voir renderBuildingPanel, bandeau « Mesures ».
+  // Fonctionne à la fois sur les textes réels (ex. zoneRefuge : « Conditionnelle
+  // : si le plancher ne peut pas... un niveau refuge adapté est exigé ») et sur
+  // les textes générés par la correction déclarative (CORRECTION_TEXTS).
+  function classifyMandatory(text) {
+    if (!text) return null;
+    const t = text.toUpperCase();
+    if (t.startsWith("NON REQUISE") || t.startsWith("NON CONCERNE") || t.startsWith("NON DÉTERMINÉ")) return null;
+    if (t.includes("FACULTATIF") || (t.includes("RECOMMAND") && !t.includes("OBLIGATOIRE"))) return false;
+    // Une mesure « conditionnelle » (ex. zone refuge) reste une obligation
+    // réglementaire dès lors que la condition est remplie : traitée comme
+    // obligatoire plutôt que recommandée, par défaut de prudence.
+    return true;
+  }
+
+  // Sépare le champ `regime` (voir scripts/export_geojson.py) en ses deux
+  // volets « Constructions nouvelles » / « Constructions existantes », déjà
+  // présents tels quels dans le texte du règlement. Retourne null si le
+  // texte ne suit pas ce format (affichage de repli en un seul bloc).
+  function splitRegime(regime) {
+    if (!regime) return null;
+    const MARK_NEUF = "Constructions nouvelles :";
+    const MARK_EXIST = "Constructions existantes :";
+    const iNeuf = regime.indexOf(MARK_NEUF);
+    const iExist = regime.indexOf(MARK_EXIST);
+    if (iNeuf === -1 || iExist === -1 || iExist < iNeuf) return null;
+    return {
+      nouvelles: regime.slice(iNeuf + MARK_NEUF.length, iExist).trim(),
+      existantes: regime.slice(iExist + MARK_EXIST.length).trim(),
+    };
+  }
+
   /* ----------------------------------------------------------------------
    * 4bis. Correction déclarative du bâtiment (par le visiteur)
    * ----------------------------------------------------------------------
@@ -945,30 +979,65 @@
 
     // --- Bandeau « Mesures de protection et d'adaptation » (diagnostic,
     //     zone refuge, aides financières) ---
-    const mesureBlocks = [];
+    // Regroupées par caractère obligatoire ou recommandé (clarté visuelle) :
+    // un texte « Non requise »/« Non concerné » n'est ni l'un ni l'autre et
+    // n'est pas affiché ici (rien à faire pour ce bâtiment sur ce point).
+    const mandatoryBlocks = [];
+    const recommendedBlocks = [];
     if (eff.diagnostic) {
-      mesureBlocks.push(`<div class="measure-block"><h4>🔎 Diagnostic de vulnérabilité</h4><p>${escapeHtml(eff.diagnostic)}</p></div>`);
+      const html = `<div class="measure-block"><h4>🔎 Diagnostic de vulnérabilité</h4><p>${escapeHtml(eff.diagnostic)}</p></div>`;
+      const mandatory = classifyMandatory(eff.diagnostic);
+      if (mandatory === true) mandatoryBlocks.push(html);
+      else if (mandatory === false) recommendedBlocks.push(html);
     }
     if (eff.zoneRefuge || eff.refugeCategorie) {
-      const isObligatoire = (eff.refugeCategorie || "").startsWith("Obligatoire");
-      mesureBlocks.push(
-        `<div class="measure-block"><h4>🛟 Zone refuge</h4><p>${escapeHtml(eff.zoneRefuge || eff.refugeCategorie)}</p>` +
-          (isObligatoire
-            ? `<p class="text-muted">Une zone refuge est un niveau du bâtiment situé au-dessus des plus hautes eaux connues, permettant d'attendre les secours en cas de crue.</p>`
-            : "") +
-          `</div>`
-      );
+      const refugeText = eff.zoneRefuge || eff.refugeCategorie;
+      const mandatory = classifyMandatory(refugeText);
+      const html =
+        `<div class="measure-block"><h4>🛟 Zone refuge</h4><p>${escapeHtml(refugeText)}</p>` +
+        (mandatory === true
+          ? `<p class="text-muted">Une zone refuge est un niveau du bâtiment situé au-dessus des plus hautes eaux connues, permettant d'attendre les secours en cas de crue.</p>`
+          : "") +
+        `</div>`;
+      if (mandatory === true) mandatoryBlocks.push(html);
+      else if (mandatory === false) recommendedBlocks.push(html);
+    }
+
+    const mesureGroups = [];
+    if (mandatoryBlocks.length) {
+      mesureGroups.push(`
+        <div class="measure-group measure-group-obligatoire">
+          <div class="measure-group-head"><span class="measure-group-icon" aria-hidden="true">⚠️</span>Mesures obligatoires</div>
+          ${mandatoryBlocks.join("")}
+        </div>
+      `);
+    }
+    if (recommendedBlocks.length) {
+      mesureGroups.push(`
+        <div class="measure-group measure-group-recommandee">
+          <div class="measure-group-head"><span class="measure-group-icon" aria-hidden="true">💡</span>Mesures recommandées</div>
+          ${recommendedBlocks.join("")}
+        </div>
+      `);
     }
     if (eff.eligibiliteFprnm) {
-      mesureBlocks.push(`<div class="measure-block"><h4>💶 Aides financières (Fonds Barnier)</h4><p>${escapeHtml(eff.eligibiliteFprnm)}</p></div>`);
+      mesureGroups.push(`
+        <div class="measure-group measure-group-aides">
+          <div class="measure-group-head"><span class="measure-group-icon" aria-hidden="true">💶</span>Aides financières disponibles</div>
+          <div class="measure-block"><p>${escapeHtml(eff.eligibiliteFprnm)}</p></div>
+        </div>
+      `);
     }
-    const mesuresBody = mesureBlocks.length
-      ? mesureBlocks.join("")
+    const mesuresBody = mesureGroups.length
+      ? mesureGroups.join("")
       : `<p class="text-muted">Aucune mesure spécifique identifiée pour ce bâtiment au-delà des règles générales de travaux ci-dessous.</p>`;
 
-    // --- Bandeau « Règles de travaux applicables à mes projets » (régime +
-    //     obligations liées à la typologie + seuils de travaux sur l'existant) ---
-    let travauxHtml = "";
+    // --- Bandeau « Règles de travaux applicables à mes projets » ---
+    // Le champ `regime` (voir scripts/export_geojson.py) contient déjà le
+    // texte du règlement scindé en deux volets (« Constructions nouvelles »
+    // / « Constructions existantes ») : splitRegime() les sépare pour un
+    // affichage en deux cartes distinctes plutôt qu'un seul bloc de texte.
+    let travauxExtraHtml = "";
     if (eff.empriseFiable === "Oui" && (eff.annexeMaxM2 || eff.extensionHebergementM2 || eff.extensionActiviteM2)) {
       const chips = [];
       if (eff.empriseSolM2) {
@@ -985,18 +1054,36 @@
       } else if (eff.extensionActiviteNote) {
         chips.push(`<div class="figure-chip">Extension activité : voir note</div>`);
       }
-      travauxHtml =
+      travauxExtraHtml =
         `<div class="figure-row">${chips.join("")}</div>` +
         (eff.extensionActiviteNote ? `<p class="text-muted">${escapeHtml(eff.extensionActiviteNote)}</p>` : "") +
         `<p class="text-muted">Seuils calculés à partir de la géométrie du bâtiment (emprise au sol réelle) ; à confirmer par un professionnel avant tout dépôt de dossier.</p>`;
     } else if (eff.empriseFiable && eff.empriseFiable.startsWith("Non")) {
-      travauxHtml = `<p class="text-muted">Emprise au sol trop réduite pour un calcul de seuil fiable à partir des données disponibles (annexe, abri...). Se référer directement au règlement du PPRi.</p>`;
+      travauxExtraHtml = `<p class="text-muted">Emprise au sol trop réduite pour un calcul de seuil fiable à partir des données disponibles (annexe, abri...). Se référer directement au règlement du PPRi.</p>`;
     }
-    const travauxBody = `
-      <p>${escapeHtml(eff.regime || "Consultez le règlement du PPRi pour le régime applicable à ce bâtiment.")}</p>
-      ${eff.obligationsTypologie ? `<p>${escapeHtml(eff.obligationsTypologie)}</p>` : ""}
-      ${travauxHtml}
-    `;
+
+    const regimeSplit = splitRegime(eff.regime);
+    let travauxBody;
+    if (regimeSplit) {
+      travauxBody = `
+        <div class="travaux-card travaux-card-neuf">
+          <div class="travaux-card-head"><span class="travaux-icon" aria-hidden="true">🏗️</span>Constructions nouvelles</div>
+          <p>${escapeHtml(regimeSplit.nouvelles)}</p>
+        </div>
+        <div class="travaux-card travaux-card-existant">
+          <div class="travaux-card-head"><span class="travaux-icon" aria-hidden="true">🔧</span>Constructions existantes</div>
+          <p>${escapeHtml(regimeSplit.existantes)}</p>
+          ${eff.obligationsTypologie ? `<p>${escapeHtml(eff.obligationsTypologie)}</p>` : ""}
+          ${travauxExtraHtml}
+        </div>
+      `;
+    } else {
+      travauxBody = `
+        <p>${escapeHtml(eff.regime || "Consultez le règlement du PPRi pour le régime applicable à ce bâtiment.")}</p>
+        ${eff.obligationsTypologie ? `<p>${escapeHtml(eff.obligationsTypologie)}</p>` : ""}
+        ${travauxExtraHtml}
+      `;
+    }
 
     const bands = [
       { id: "zonage", label: "Zonage", body: zonageBody, open: false },
