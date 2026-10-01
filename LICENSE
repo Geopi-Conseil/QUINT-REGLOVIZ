@@ -1,7 +1,7 @@
 MIT License
 
 Copyright (c) 2026 Contributeurs du projet « Mes obligations face au risque
-inondation - Septèmes-les-Vallons »
+inondation - Quint-Fonsegrives »
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -25,5 +25,5 @@ IN THE SOFTWARE.
 
 Cette licence MIT s'applique au code source (HTML/CSS/JS, scripts).
 Les données du dossier `data/` restent soumises aux licences de leurs
-producteurs respectifs (IGN, DDTM 13, Acceslibre, OpenStreetMap), voir
+producteurs respectifs (IGN, DDT de la Haute-Garonne, OpenStreetMap), voir
 `mentions-legales.html`.
