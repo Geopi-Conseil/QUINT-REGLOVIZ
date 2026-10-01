@@ -1,0 +1,16 @@
+# Système / éditeurs
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# QGIS (si le projet source est un jour ajouté au dépôt)
+*.qgz~
+*.gpkg-wal
+*.gpkg-shm
+*.qgd
+
+# Exports temporaires
+*.tmp
+webapp_export_*.geojson

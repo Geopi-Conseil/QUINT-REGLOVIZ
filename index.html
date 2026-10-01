@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mes obligations face au risque inondation - Quint-Fonsegrives</title>
+  <meta name="description" content="Consultez les obligations réglementaires liées au risque inondation (PPRi) pour votre bâtiment à Quint-Fonsegrives.">
+  <meta name="theme-color" content="#0b4f6c">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="src/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
+</head>
+<body>
+  <a class="skip-link" href="#map">Aller au contenu principal</a>
+
+  <header class="app-header">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="src/assets/logo-reglo-viz.png" alt="REGL'OVIZ">
+      <span class="brand-text">
+        <small>Mes obligations inondation - Quint-Fonsegrives - outil non-officiel</small>
+      </span>
+    </a>
+    <nav aria-label="Navigation principale">
+      <a href="index.html" aria-current="page">Carte</a>
+      <a href="glossaire.html">Glossaire</a>
+      <a href="faq.html">FAQ</a>
+      <a href="mentions-legales.html">Mentions légales</a>
+    </nav>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-nav">☰</button>
+  </header>
+
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Navigation mobile">
+    <a href="index.html">🗺️ Carte</a>
+    <a href="glossaire.html">📖 Glossaire</a>
+    <a href="faq.html">❓ Questions fréquentes</a>
+    <a href="mentions-legales.html">⚖️ Mentions légales</a>
+  </nav>
+
+  <main class="map-app">
+    <div id="map" role="application" aria-label="Carte interactive des obligations liées au risque inondation"></div>
+
+    <div class="map-toolbar">
+      <form id="search-form" class="search-box" role="search">
+        <label for="search-input" class="visually-hidden">Rechercher une adresse à Quint-Fonsegrives</label>
+        <input type="search" id="search-input" placeholder="Rechercher une adresse…" autocomplete="off">
+        <button type="submit" aria-label="Lancer la recherche">🔎</button>
+        <div id="search-results" class="search-results" role="listbox" aria-label="Résultats de recherche"></div>
+      </form>
+
+      <div class="legend-wrapper">
+        <button type="button" id="legend-toggle" class="icon-btn" aria-expanded="false" aria-controls="legend-box" aria-label="Afficher la légende et les couches">🗂️</button>
+        <div id="legend-box" class="legend-box">
+          <h3>Zones réglementaires</h3>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--zone-bleue)"></span>Bleue</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--zone-jaune)"></span>Jaune</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--zone-rouge)"></span>Rouge</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--zone-grise-hachuree)"></span>Grise hachurée (crue historique)</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--zone-pourpre)"></span>Pourpre</div>
+          <hr style="border:none;border-top:1px solid var(--color-border);margin:8px 0">
+          <label class="legend-row"><input type="checkbox" id="toggle-horszone"> Autres bâtiments (hors zone)</label>
+          <label class="legend-row"><input type="checkbox" id="toggle-erp" checked> Établissements recevant du public</label>
+          <label class="legend-row"><input type="checkbox" id="toggle-hauteur-eau"> Hauteur d'eau estimée (crue de référence)</label>
+        </div>
+      </div>
+
+      <div class="dashboard-wrapper">
+        <button type="button" id="dashboard-toggle" class="icon-btn" aria-expanded="false" aria-controls="dashboard-box" aria-label="Afficher le tableau de bord (élus, techniciens)">📊</button>
+        <div id="dashboard-box" class="dashboard-box" role="region" aria-label="Tableau de bord communal">
+          <h3>Tableau de bord communal</h3>
+          <p class="dashboard-intro">
+            À l'attention des élus et techniciens. Cliquez sur une donnée pour
+            surligner les bâtiments correspondants sur la carte ; cliquez à
+            nouveau pour réinitialiser.
+          </p>
+          <div class="dashboard-active-filter" id="dashboard-active-filter" hidden>
+            <span id="dashboard-active-filter-label"></span>
+            <button type="button" id="dashboard-reset-btn" aria-label="Réinitialiser le filtre">✕</button>
+          </div>
+          <div id="dashboard-groups" class="dashboard-groups">
+            <p class="text-muted">Chargement des données…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="locate-btn" class="icon-btn locate-btn" aria-label="Me localiser sur la carte">📍</button>
+
+    <section id="info-panel" class="info-panel" aria-label="Informations sur le bâtiment sélectionné">
+      <button id="panel-close" class="panel-close" aria-label="Fermer et revenir à l'accueil" hidden>✕</button>
+      <button id="panel-handle" class="panel-handle" aria-expanded="false" aria-controls="panel-body">
+        <span class="grip" aria-hidden="true"></span>
+        <span class="panel-title-row">
+          <span id="panel-zone-dot" class="zone-dot" aria-hidden="true"></span>
+          <h2 id="panel-title">Chargement…</h2>
+        </span>
+        <div id="panel-subtitle" class="panel-subtitle"></div>
+      </button>
+      <div id="panel-body" class="panel-body"></div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="src/js/app.js"></script>
+</body>
+</html>
