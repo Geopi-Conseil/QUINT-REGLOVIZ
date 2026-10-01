@@ -3,27 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Mes obligations face au risque inondation - Quint-Fonsegrives</title>
+  <title>LEXALÉA - Mes obligations face au risque inondation - Quint-Fonsegrives</title>
   <meta name="description" content="Consultez les obligations réglementaires liées au risque inondation (PPRi) pour votre bâtiment à Quint-Fonsegrives.">
-  <meta name="theme-color" content="#0b4f6c">
+  <meta name="theme-color" content="#2a2a2a">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="src/css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>">
 </head>
-<body>
+<body id="app-body">
   <a class="skip-link" href="#map">Aller au contenu principal</a>
 
-  <header class="app-header">
-    <a class="brand" href="index.html">
-      <img class="brand-logo" src="src/assets/logo-reglo-viz.png" alt="REGL'OVIZ">
-      <span class="brand-text">
-        <small>Mes obligations inondation - Quint-Fonsegrives - outil non-officiel</small>
-      </span>
+  <header class="app-header" id="app-header" hidden>
+    <a class="brand" href="#" id="nav-brand">
+      <span class="brand-pill">LEXALÉA</span>
     </a>
-    <nav aria-label="Navigation principale">
-      <a href="index.html" aria-current="page">Carte</a>
+    <span class="mode-badge" id="mode-badge"></span>
+    <a href="#" id="nav-retour-accueil" class="nav-retour">Revenir à la page d'accueil</a>
+    <span class="brand-text"><small>Outil non-officiel - Quint-Fonsegrives</small></span>
+    <nav class="nav-pills" aria-label="Navigation secondaire">
       <a href="glossaire.html">Glossaire</a>
       <a href="faq.html">FAQ</a>
       <a href="mentions-legales.html">Mentions légales</a>
@@ -32,13 +31,26 @@
   </header>
 
   <nav id="mobile-nav" class="mobile-nav" aria-label="Navigation mobile">
-    <a href="index.html">🗺️ Carte</a>
+    <a href="#" id="mobile-nav-retour">🏠 Revenir à l'accueil</a>
     <a href="glossaire.html">📖 Glossaire</a>
     <a href="faq.html">❓ Questions fréquentes</a>
     <a href="mentions-legales.html">⚖️ Mentions légales</a>
   </nav>
 
-  <main class="map-app">
+  <section id="screen-accueil" class="screen-accueil">
+    <div class="accueil-card">
+      <div class="accueil-logo">LEXALÉA</div>
+      <h1>Mes obligations face au risque inondation</h1>
+      <p>Quint-Fonsegrives - PPRi « Marcaissonne-Sauneseillonne » - outil non-officiel. Choisissez votre profil pour accéder au contenu qui vous concerne.</p>
+      <div class="accueil-buttons">
+        <button type="button" class="accueil-btn accueil-btn-habitants" data-mode="habitants">Habitants</button>
+        <button type="button" class="accueil-btn accueil-btn-elus" data-mode="elus">Élus &amp; collectivités</button>
+        <button type="button" class="accueil-btn accueil-btn-services" data-mode="services">Services techniques</button>
+      </div>
+    </div>
+  </section>
+
+  <main class="map-app" id="screen-map" hidden>
     <div id="map" role="application" aria-label="Carte interactive des obligations liées au risque inondation"></div>
 
     <div class="map-toolbar">
@@ -70,16 +82,20 @@
         <div id="dashboard-box" class="dashboard-box" role="region" aria-label="Tableau de bord communal">
           <h3>Tableau de bord communal</h3>
           <p class="dashboard-intro">
-            À l'attention des élus et techniciens. Cliquez sur une donnée pour
-            surligner les bâtiments correspondants sur la carte ; cliquez à
-            nouveau pour réinitialiser.
+            Cliquez sur une donnée pour surligner les bâtiments correspondants
+            sur la carte ; cliquez à nouveau pour réinitialiser.
           </p>
+          <div id="dashboard-stats" class="dashboard-stats"></div>
           <div class="dashboard-active-filter" id="dashboard-active-filter" hidden>
             <span id="dashboard-active-filter-label"></span>
             <button type="button" id="dashboard-reset-btn" aria-label="Réinitialiser le filtre">✕</button>
           </div>
           <div id="dashboard-groups" class="dashboard-groups">
             <p class="text-muted">Chargement des données…</p>
+          </div>
+          <div class="dashboard-group">
+            <h4>Obligations de la commune (chapitre 4 du règlement)</h4>
+            <div id="dashboard-chapitre4"></div>
           </div>
         </div>
       </div>
@@ -88,7 +104,7 @@
     <button id="locate-btn" class="icon-btn locate-btn" aria-label="Me localiser sur la carte">📍</button>
 
     <section id="info-panel" class="info-panel" aria-label="Informations sur le bâtiment sélectionné">
-      <button id="panel-close" class="panel-close" aria-label="Fermer et revenir à l'accueil" hidden>✕</button>
+      <button id="panel-close" class="panel-close" aria-label="Fermer ce panneau" hidden>✕</button>
       <button id="panel-handle" class="panel-handle" aria-expanded="false" aria-controls="panel-body">
         <span class="grip" aria-hidden="true"></span>
         <span class="panel-title-row">

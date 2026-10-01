@@ -30,6 +30,21 @@
   --zone-pourpre: #9e9e9e;
   --zone-hors: #9e9e9e;
 
+  /* Identité LEXALÉA : nav sombre + un badge de couleur par parcours (voir
+     docs/ARCHITECTURE pour l'origine de ces teintes, reprises du prototype
+     d'interface). Les bandeaux du panneau Habitants reprennent la palette
+     du prototype (proto_lexalea.pptx). */
+  --nav-bg: #2a2a2a;
+  --nav-bg-dark: #1f1f1f;
+  --mode-habitants: #2e3b52;
+  --mode-elus: #6b5a1f;
+  --mode-services: #2f6f63;
+  --band-zonage: #afc2e8;
+  --band-profil: #f5d76e;
+  --band-estimation: #9fb4dd;
+  --band-mesures: #c9ddc2;
+  --band-travaux: #f3c8a6;
+
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -44,6 +59,17 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Les écrans applicatifs (en-tête, accueil, carte) fixent tous un display
+   explicite (flex/block) pour leur état visible, ce qui l'emporterait sur
+   l'attribut [hidden] du navigateur (règle de spécificité égale, UA vs
+   auteur) sans cette surcharge explicite. setMode()/showAccueil() dans
+   src/js/app.js basculent ces 3 écrans via l'attribut hidden. */
+#app-header[hidden],
+#screen-map[hidden],
+#screen-accueil[hidden] {
+  display: none;
 }
 
 html, body {
@@ -98,10 +124,10 @@ img { max-width: 100%; }
   height: var(--header-h);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 0 12px;
-  background: var(--color-primary);
-  color: var(--color-primary-contrast);
+  background: var(--nav-bg);
+  color: #fff;
   z-index: 1200;
   box-shadow: var(--shadow-1);
 }
@@ -110,39 +136,60 @@ img { max-width: 100%; }
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  color: #333;
   text-decoration: none;
-  font-weight: 600;
   line-height: 1.15;
-  margin-right: auto;
   min-width: 0;
-}
-
-.app-header .brand .brand-logo {
   flex: none;
-  height: 34px;
-  width: auto;
-  display: block;
-  background: #fff;
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  box-sizing: content-box;
 }
 
-.app-header .brand .brand-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.app-header .brand .brand-pill {
+  flex: none;
+  background: #fff;
+  color: #2a2a2a;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  padding: 7px 14px;
+  border-radius: 9px;
+}
+
+.app-header .mode-badge {
+  flex: none;
+  background: var(--mode-badge, var(--mode-habitants));
+  color: #fff;
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 7px 13px;
+  border-radius: 9px;
   white-space: nowrap;
 }
 
-.app-header .brand .brand-text small {
-  display: block;
-  font-weight: 400;
-  font-size: 11px;
-  opacity: 0.85;
+.app-header .nav-retour {
+  color: #fff;
+  opacity: 0.88;
+  text-decoration: none;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: none;
 }
 
-.app-header nav {
+.app-header .nav-retour:hover { opacity: 1; }
+
+.app-header .brand-text {
+  color: #fff;
+  opacity: 0.85;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: auto;
+  display: none;
+}
+
+.app-header nav.nav-pills {
   display: none;
 }
 
@@ -155,23 +202,32 @@ img { max-width: 100%; }
   border-radius: var(--radius-sm);
   font-size: 18px;
   cursor: pointer;
+  margin-left: auto;
+}
+
+@media (min-width: 640px) {
+  .app-header .nav-retour { display: inline; }
 }
 
 @media (min-width: 860px) {
-  .app-header nav {
+  .app-header .brand-text { display: block; margin-right: 0; }
+  .app-header nav.nav-pills {
     display: flex;
-    gap: 4px;
+    gap: 8px;
+    margin-left: auto;
   }
-  .app-header nav a {
+  .app-header nav.nav-pills a {
     color: #fff;
     text-decoration: none;
-    font-size: 14px;
-    padding: 8px 10px;
-    border-radius: var(--radius-sm);
-    opacity: 0.9;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.5);
+    opacity: 0.92;
   }
-  .app-header nav a:hover,
-  .app-header nav a[aria-current="page"] {
+  .app-header nav.nav-pills a:hover,
+  .app-header nav.nav-pills a[aria-current="page"] {
     background: rgba(255,255,255,0.15);
     opacity: 1;
   }
@@ -186,7 +242,7 @@ img { max-width: 100%; }
   top: var(--header-h);
   left: 0;
   right: 0;
-  background: var(--color-primary-dark);
+  background: var(--nav-bg-dark);
   z-index: 1150;
   display: none;
   flex-direction: column;
@@ -213,6 +269,82 @@ img { max-width: 100%; }
 @media (min-width: 860px) {
   .mobile-nav { display: none !important; }
 }
+
+/* ============================ Écran d'accueil =========================== */
+/* 3 parcours (Habitants / Élus & collectivités / Services techniques), repris
+   du prototype d'interface (proto_lexalea.pptx) : carte claire sur fond
+   cartographique abstrait, pastille LEXALÉA, un bouton par parcours. */
+
+.screen-accueil {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 60% 50% at 72% 30%, #3a5a78 0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 22% 75%, #3f6b52 0%, transparent 55%),
+    #22303c;
+}
+
+.accueil-card {
+  background: #fbeac2;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: 44px 40px;
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+}
+
+.accueil-logo {
+  display: inline-block;
+  background: #fff;
+  color: #2a2a2a;
+  font-weight: 800;
+  font-size: 18px;
+  padding: 9px 20px;
+  border-radius: 9px;
+  margin-bottom: 20px;
+}
+
+.accueil-card h1 {
+  margin: 0 0 10px;
+  font-size: 1.5rem;
+  color: #a67c1e;
+  font-weight: 800;
+}
+
+.accueil-card p {
+  margin: 0 0 28px;
+  color: #6b5a1f;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.accueil-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.accueil-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 16px 14px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.accueil-btn:hover { filter: brightness(1.08); }
+
+.accueil-btn-habitants { background: var(--mode-habitants); }
+.accueil-btn-elus { background: var(--mode-elus); }
+.accueil-btn-services { background: var(--mode-services); }
 
 /* ====================== Page de contenu (non-carte) ==================== */
 
@@ -487,6 +619,10 @@ footer.site-footer {
   display: block;
 }
 
+body[data-mode="elus"] .dashboard-box {
+  width: 420px;
+}
+
 .dashboard-box h3 {
   margin: 0 0 4px;
   font-size: 14px;
@@ -603,6 +739,148 @@ footer.site-footer {
 
 .dashboard-tile[aria-pressed="true"] .dashboard-tile-count {
   color: #fff;
+}
+
+/* --------- Parcours : badge de mode, visibilité conditionnelle ----------- */
+
+body[data-mode="habitants"] .mode-badge { background: var(--mode-habitants); }
+body[data-mode="elus"] .mode-badge { background: var(--mode-elus); }
+body[data-mode="services"] .mode-badge { background: var(--mode-services); }
+
+/* Le tableau de bord communal (agrégats + chapitre 4) est réservé au
+   parcours Élus & collectivités : masqué ailleurs plutôt que dupliqué. */
+body:not([data-mode="elus"]) .dashboard-wrapper { display: none; }
+
+/* --------- Tableau de bord communal : statistiques + chapitre 4 ---------- */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dashboard-stat {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.dashboard-stat strong {
+  display: block;
+  font-size: 1.15rem;
+  color: var(--mode-elus);
+}
+
+.dashboard-stat span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.chapitre4-card {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+  margin-bottom: 8px;
+}
+
+.chapitre4-card:last-child { margin-bottom: 0; }
+
+.chapitre4-card .chapitre4-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.chapitre4-card .chapitre4-title {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--color-text);
+}
+
+.chapitre4-card .chapitre4-delai {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e7dec4;
+  color: var(--mode-elus);
+  white-space: nowrap;
+}
+
+.chapitre4-card p {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.chapitre4-card .chapitre4-ref {
+  font-size: 10.5px;
+  color: #999;
+}
+
+/* ----------- Services techniques : panneau « socle commun » par zone ----- */
+
+.zone-exception-callout {
+  background: #fbeac2;
+  border: 1px solid #f0d898;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #7a5c14;
+  margin: 10px 0 16px;
+}
+
+.socle-theme-card {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.socle-theme-card:last-child { margin-bottom: 0; }
+
+.socle-theme-card h4 {
+  margin: 0 0 4px;
+  font-size: 0.86rem;
+  color: var(--color-primary-dark);
+}
+
+.socle-theme-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text);
+  line-height: 1.55;
+}
+
+.zone-chip-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 16px;
+}
+
+.zone-chip {
+  border: none;
+  border-radius: 9px;
+  padding: 11px 13px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.zone-chip[aria-pressed="true"] {
+  outline: 3px solid #232323;
+  outline-offset: -3px;
 }
 
 /* ------------------------------ Panneau info ----------------------------- */
@@ -770,6 +1048,107 @@ details.tech-details dt {
 details.tech-details dd {
   margin: 2px 0 0;
 }
+
+/* --------------------- Panneau en bandeaux (Habitants / Services) --------
+   Accordéon de bandeaux colorés repris du prototype d'interface : chaque
+   bandeau est un <button> plein-largeur de couleur distincte, qui déplie son
+   contenu en blanc en dessous. Utilisé par renderBuildingPanel() (parcours
+   Habitants et Services techniques) et par renderZonePanel() (socle commun,
+   parcours Services techniques) — voir src/js/app.js §4 et §4ter. */
+
+.band-accordion {
+  margin: -0 -18px 0;
+}
+
+.band-item + .band-item {
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.band-head {
+  width: 100%;
+  list-style: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 14px 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #232323;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.band-head::-webkit-details-marker { display: none; }
+
+.band-head::after {
+  content: "+";
+  flex: none;
+  font-weight: 800;
+  opacity: 0.6;
+}
+
+details[open] > .band-head::after {
+  content: "–";
+}
+
+.band-body {
+  padding: 14px 18px 18px;
+  background: #fff;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.band-body p { margin: 0 0 8px; }
+.band-body p:last-child { margin-bottom: 0; }
+
+.band-body.band-body-tinted {
+  background: inherit;
+}
+
+.band-estimation-figure {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--mode-habitants);
+  margin: 4px 0 8px;
+}
+
+.band-estimation-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.band-item-zonage .band-head { background: var(--band-zonage); }
+.band-item-profil .band-head { background: var(--band-profil); }
+.band-item-estimation .band-head { background: var(--band-estimation); }
+.band-item-mesures .band-head { background: var(--band-mesures); }
+.band-item-travaux .band-head { background: var(--band-travaux); }
+
+/* Dans la bande « Mesures », les sous-actions reprennent le fond de la
+   bande (comme dans le prototype) plutôt qu'un fond blanc neutre. */
+.band-item-mesures .band-body { background: var(--band-mesures); }
+
+.band-subaction {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #ededed;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #232323;
+  cursor: default;
+  margin-bottom: 8px;
+}
+
+.band-subaction:last-child { margin-bottom: 0; }
 
 /* ---------------------- Correction déclarative du visiteur --------------- */
 

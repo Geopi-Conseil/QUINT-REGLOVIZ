@@ -48,6 +48,127 @@
     },
   };
 
+  // Obligations de la commune (chapitre 4 du règlement du PPRi), indépendantes
+  // de tout bâtiment précis. Texte repris tel quel du règlement
+  // (RGT_QUINT-FONSEGRIVES.pdf, chapitre 4) : voir docs/METHODOLOGIE.md et
+  // l'espace « Élus & collectivités » (tableau de bord communal).
+  const OBLIGATIONS_COLLECTIVITE = [
+    {
+      code: "4.1",
+      title: "Plan Communal de Sauvegarde (PCS)",
+      delai: "2 ans",
+      text:
+        "En l'absence de PCS à l'approbation du PPR, la commune élabore un PCS précisant les modalités d'information et " +
+        "d'alerte de la population, le protocole de secours et d'évacuation des établissements sensibles, les mesures " +
+        "de mise en sécurité des parkings souterrains et un plan de circulation et d'évacuation.",
+      public: "commune",
+    },
+    {
+      code: "4.2",
+      title: "Établissements sensibles existants",
+      delai: "1 an / 5 ans",
+      text:
+        "Étude de vulnérabilité spécifique (sauvegarde des personnes + vulnérabilité du bâti) sous 1 an. En zone " +
+        "d'aléa fort, mise en œuvre des mesures dans la limite de 10 % de la valeur vénale du bien, sous 5 ans.",
+      public: "gestionnaires d'établissements",
+    },
+    {
+      code: "4.3",
+      title: "Biens et activités existants",
+      delai: "6 mois à 5 ans",
+      text:
+        "Mise hors d'eau des stockages de produits dangereux (5 ans), balisage des piscines au-dessus de la cote de " +
+        "référence (2 ans), signalisation de l'inondabilité des parkings (6 mois).",
+      public: "propriétaires, exploitants",
+    },
+    {
+      code: "4.4",
+      title: "Gestionnaires de réseaux publics",
+      delai: "2 ans",
+      text:
+        "Verrouillage des tampons en parties basses des réseaux, mise hors d'eau des postes électriques moyenne et " +
+        "basse tension, protection des équipements sensibles de télécommunication.",
+      public: "gestionnaires de réseaux",
+    },
+    {
+      code: "4.5",
+      title: "Recommandations (non obligatoires)",
+      delai: "recommandé",
+      text:
+        "Mesures recommandées aux biens et activités existants : étanchéité des parties sous PHEC, ouverture « fusible » " +
+        "en rez-de-chaussée si PHEC > 1 m, dispositif de coupure des réseaux (électricité, gaz, eau) au-dessus des PHEC, " +
+        "compteurs et chaudières hors d'eau, ouverture suffisante pour évacuer les biens déplaçables, lestage des citernes " +
+        "enterrées en période de crue, entretien des fossés et réseaux pluviaux, conseil technique avant plantation de " +
+        "haies ou d'arbres.",
+      public: "propriétaires, exploitants, habitants",
+    },
+    {
+      code: "4.6",
+      title: "Entretien des cours d'eau",
+      delai: "continu",
+      text:
+        "Les riverains, propriétaires des berges et du lit, assurent le libre écoulement : entretien des ouvrages de " +
+        "protection, curage des fossés, débroussaillage sélectif et élagage en berge.",
+      public: "riverains",
+    },
+    {
+      code: "4.7",
+      title: "Information préventive du maire",
+      delai: "tous les 2 ans",
+      text:
+        "Information de la population (existence et caractéristiques du risque, modalités d'alerte, numéros d'appel, " +
+        "conduite à tenir), avec affichage obligatoire dans les locaux publics.",
+      public: "commune",
+    },
+  ];
+
+  // Socle commun : prescriptions applicables à toutes les zones inondables du
+  // PPRi (chapitre 2 du règlement), indépendamment du bâtiment. Voir
+  // l'espace « Services techniques » (socle commun par zone).
+  const SOCLE_COMMUN = [
+    {
+      title: "Aménagements, infrastructures",
+      text:
+        "Ouvrages de protection : étude d'impact globale, ne pas aggraver les risques ailleurs. Franchissements de " +
+        "cours d'eau dimensionnés pour la plus grosse crue connue. Équipements sensibles au-dessus des PHEC.",
+    },
+    {
+      title: "Utilisations des sols",
+      text:
+        "Parkings : inondabilité signalée, accès interdit en crue. Stockage de matières dangereuses hors d'eau. " +
+        "Clôtures à transparence hydraulique. Réseaux eaux pluviales/assainissement étanches, clapets anti-retour.",
+    },
+    {
+      title: "Stations de traitement des eaux usées",
+      text:
+        "Implantation en zone inondable proscrite par principe. Dérogation possible sous conditions (hors d'eau pour " +
+        "une crue quinquennale, installations électriques pour une crue centennale), demande préalable auprès du Préfet.",
+    },
+    {
+      title: "Aires d'accueil des gens du voyage",
+      text:
+        "Interdites en zone inondable par principe. Dérogation possible en aléa faible (< 50 cm), zone urbanisée, avec " +
+        "plan de secours communal adapté. Pas d'extension de capacité des aires existantes.",
+    },
+  ];
+
+  // Métadonnées d'affichage par zone (socle commun, Services techniques) :
+  // DOIVENT rester cohérentes avec --zone-* dans src/css/style.css.
+  const ZONE_META = {
+    Bi: { label: "Bleue", color: "#4fa8e0", desc: "zone urbanisée, aléa moyen à faible" },
+    Ji: { label: "Jaune", color: "#fbc02d", desc: "zone non urbanisée, aléa moyen à faible" },
+    Ri: { label: "Rouge", color: "#e2001a", desc: "aléa fort" },
+    GHi: { label: "Grise hachurée", color: "#8a8a8a", desc: "crue historique" },
+  };
+
+  // Exceptions au socle commun propres à certaines zones (règlement PPRi).
+  const ZONE_EXCEPTIONS = {
+    Ri: "création de station d'épuration proscrite (STEP non dérogeable en aléa fort).",
+    GHi:
+      "étude géotechnique G2 AVP obligatoire avant toute construction nécessitant des fondations " +
+      "(régime neuf comme existant).",
+  };
+
   /* ----------------------------------------------------------------------
    * 2. Carte
    * -------------------------------------------------------------------- */
@@ -89,6 +210,89 @@
 
   let selectedLayer = null;
   const defaultStyleCache = new WeakMap();
+
+  /* ----------------------------------------------------------------------
+   * 2bis. Parcours (Habitants / Élus & collectivités / Services techniques)
+   * ----------------------------------------------------------------------
+   * LEXALÉA propose 3 parcours distincts depuis un écran d'accueil. Le
+   * parcours choisi (appMode) détermine : le contenu par défaut du panneau
+   * (showWelcomePanel), le comportement du clic sur le zonage (socle commun
+   * en Services techniques, cf. onEachZonage), le dépliage par défaut des
+   * détails techniques du panneau bâtiment (renderBuildingPanel), et la
+   * visibilité du tableau de bord communal (réservé aux Élus & collectivités,
+   * cf. style.css). La carte Leaflet est partagée par les 3 parcours (un seul
+   * conteneur, un seul jeu de données) : seuls l'habillage et les
+   * interactions changent.
+   * -------------------------------------------------------------------- */
+
+  const MODE_BADGE_LABEL = {
+    habitants: "Espace Habitants",
+    elus: "Espace Élus & collectivités",
+    services: "Espace Services techniques",
+  };
+
+  const appBody = document.getElementById("app-body");
+  const accueilScreen = document.getElementById("screen-accueil");
+  const appHeader = document.getElementById("app-header");
+  const screenMap = document.getElementById("screen-map");
+  const modeBadge = document.getElementById("mode-badge");
+  const navRetourAccueil = document.getElementById("nav-retour-accueil");
+  const mobileNavRetourAccueil = document.getElementById("mobile-nav-retour");
+  const navBrand = document.getElementById("nav-brand");
+
+  let appMode = null;
+
+  function setMode(mode) {
+    appMode = mode;
+    appBody.dataset.mode = mode;
+    accueilScreen.hidden = true;
+    appHeader.hidden = false;
+    screenMap.hidden = false;
+    modeBadge.textContent = MODE_BADGE_LABEL[mode] || "";
+    clearSelection();
+    clearDashboardFilter();
+    showWelcomePanel();
+    setPanelExpanded(window.innerWidth >= 860);
+    if (mobileNav.classList.contains("open")) {
+      mobileNav.classList.remove("open");
+      menuToggle.setAttribute("aria-expanded", "false");
+    }
+    // Reporté à l'évènement suivant (setTimeout 0) pour deux raisons :
+    // - la carte a été initialisée alors que son conteneur était masqué
+    //   (display:none, écran d'accueil) : Leaflet continue de croire que le
+    //   conteneur fait 0×0 tant qu'on ne lui redemande pas explicitement de
+    //   recalculer sa taille une fois affiché ;
+    // - ouvrir le tableau de bord communal pendant la phase de propagation
+    //   du clic qui a déclenché setMode() le ferait immédiatement refermer
+    //   par l'écouteur « clic en dehors » du tableau de bord (cf. §7), qui
+    //   reçoit ce même évènement juste après.
+    setTimeout(() => {
+      map.invalidateSize();
+      setDashboardOpen(mode === "elus");
+    }, 0);
+  }
+
+  function showAccueil() {
+    appMode = null;
+    delete appBody.dataset.mode;
+    accueilScreen.hidden = false;
+    appHeader.hidden = true;
+    screenMap.hidden = true;
+    clearSelection();
+    clearDashboardFilter();
+    setDashboardOpen(false);
+  }
+
+  document.querySelectorAll(".accueil-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setMode(btn.dataset.mode));
+  });
+
+  [navRetourAccueil, mobileNavRetourAccueil, navBrand].forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      showAccueil();
+    });
+  });
 
   /* ----------------------------------------------------------------------
    * 3. Chargement des données
@@ -174,6 +378,13 @@
   function onEachZonage(feature, layer) {
     layer.on("click", (e) => {
       clearSelection();
+      if (appMode === "services") {
+        renderZonePanel(feature.properties.zoneCode, feature.properties.zoneLabel);
+        if (window.innerWidth < 860) {
+          map.flyTo(e.latlng, Math.max(map.getZoom() + 1, 16), { duration: 0.5 });
+        }
+        return;
+      }
       renderZoneFallbackPanel(feature.properties);
       setPanelExpanded(true);
       if (window.innerWidth < 860) {
@@ -182,6 +393,44 @@
         map.setView(e.latlng, Math.max(map.getZoom() + 2, 17));
       }
     });
+  }
+
+  // Socle commun applicable à une zone (parcours Services techniques) :
+  // accessible par clic sur le zonage (ci-dessus), ou depuis les raccourcis
+  // de zone du panneau d'accueil de ce parcours (showWelcomePanel).
+  function renderZonePanel(code, zoneLabel) {
+    panelCloseBtn.hidden = false;
+    const meta = ZONE_META[code] || { label: code, color: "#9e9e9e", desc: "" };
+    panelZoneDot.style.background = meta.color;
+    panelTitle.textContent = `Zone ${meta.label} (${code}) — socle commun`;
+    panelSubtitle.textContent = zoneLabel || meta.desc;
+
+    const exception = ZONE_EXCEPTIONS[code];
+    let html = `
+      <div class="intro-block">
+        ${badge(`Zone ${meta.label}`, meta.color)}
+        <p>Socle commun applicable à toutes les zones inondables du PPRi « Marcaissonne-Sauneseillonne »,
+        ainsi que les éventuelles exceptions propres à cette zone.</p>
+      </div>
+    `;
+    if (exception) {
+      html += `
+        <div class="zone-exception-callout">
+          <strong>Exception pour cette zone —</strong> ${escapeHtml(exception)}
+        </div>
+      `;
+    }
+    html += SOCLE_COMMUN.map(
+      (t) => `
+      <div class="socle-theme-card">
+        <h4>${escapeHtml(t.title)}</h4>
+        <p>${escapeHtml(t.text)}</p>
+      </div>
+    `
+    ).join("");
+
+    panelBody.innerHTML = html;
+    setPanelExpanded(true);
   }
 
   function renderZoneFallbackPanel(p) {
@@ -643,139 +892,136 @@
       : "Zone réglementée";
     panelSubtitle.textContent = eff.zoneLabel || "";
 
-    const sections = [];
+    // --- Bandeau « Zonage » ---
+    const zonageBody = `
+      ${badge(CONFIG.zoneShortNames[eff.zoneCode] || eff.zoneCode, eff.zoneColor)}
+      <p>Votre bien se situe en <strong>zone ${escapeHtml(CONFIG.zoneShortNames[eff.zoneCode] || eff.zoneCode)}
+      (${escapeHtml(eff.zoneCode || "")})</strong> du PPRi « Marcaissonne-Sauneseillonne »${
+      eff.zoneLabel ? " : " + escapeHtml(eff.zoneLabel) : ""
+    }.</p>
+      ${eff.overridden ? `<p class="correction-active-note">✏️ Affichage basé sur votre déclaration ci-dessous.</p>` : ""}
+    `;
 
-    // --- Résumé (badge de zone uniquement ; le régime est détaillé plus bas
-    //     dans « Règles de construction et travaux ») ---
-    sections.push(`
-      <div class="intro-block">
-        ${badge(CONFIG.zoneShortNames[eff.zoneCode] || eff.zoneCode, eff.zoneColor)}
-        ${eff.overridden ? `<p class="correction-active-note">✏️ Affichage basé sur votre déclaration ci-dessous.</p>` : ""}
-      </div>
-    `);
-
-    // --- Type de bâtiment (typologie + caractéristiques) ---
-    {
-      const typoSrc = eff.typologieSource ? `Source : ${eff.typologieSource}` : "Source : BD TOPO®";
-      const chips = [];
-      if (eff.etagePresent) {
-        chips.push(`<div class="figure-chip"><strong>${escapeHtml(eff.etagePresent)}</strong>étage présent</div>`);
-      }
-      if (hasValue(eff.nbLogements)) {
-        chips.push(`<div class="figure-chip"><strong>${escapeHtml(String(eff.nbLogements))}</strong>logement(s)</div>`);
-      }
-      if (hasValue(eff.hauteurM)) {
-        chips.push(`<div class="figure-chip"><strong>${eff.hauteurM} m</strong>hauteur (BD TOPO)</div>`);
-      }
-      sections.push(
-        section(
-          "🏠",
-          "Type de bâtiment",
-          `<p><strong>${escapeHtml(eff.typologie || "Typologie non déterminée")}</strong></p>` +
-            (chips.length ? `<div class="figure-row">${chips.join("")}</div>` : "") +
-            `<p class="text-muted">${escapeHtml(typoSrc)}${eff.etageSource ? " · étage : " + escapeHtml(eff.etageSource) : ""}</p>`
-        )
-      );
+    // --- Bandeau « Profil de mon bien » (typologie, étage, hauteur + outil
+    //     de correction déclarative du visiteur) ---
+    const typoSrc = eff.typologieSource ? `Source : ${eff.typologieSource}` : "Source : BD TOPO®";
+    const profilChips = [];
+    if (eff.etagePresent) {
+      profilChips.push(`<div class="figure-chip"><strong>${escapeHtml(eff.etagePresent)}</strong>étage présent</div>`);
     }
+    if (hasValue(eff.nbLogements)) {
+      profilChips.push(`<div class="figure-chip"><strong>${escapeHtml(String(eff.nbLogements))}</strong>logement(s)</div>`);
+    }
+    if (hasValue(eff.hauteurM)) {
+      profilChips.push(`<div class="figure-chip"><strong>${eff.hauteurM} m</strong>hauteur (BD TOPO)</div>`);
+    }
+    const profilBody = `
+      <p><strong>${escapeHtml(eff.typologie || "Typologie non déterminée")}</strong></p>
+      ${profilChips.length ? `<div class="figure-row">${profilChips.join("")}</div>` : ""}
+      <p class="text-muted">${escapeHtml(typoSrc)}${eff.etageSource ? " · étage : " + escapeHtml(eff.etageSource) : ""}</p>
+      ${renderCorrectionBlock(p, override)}
+    `;
 
-    // --- Hauteur d'eau estimée (crue de référence) ---
+    // --- Bandeau « Estimation de mon exposition au risque (inondation) » ---
     // Calculée hors-ligne (TIN des cotes de crue PHE moins MNT sol LiDAR HD
     // au centroïde du bâtiment, voir docs/METHODOLOGIE.md) et déjà présente
     // dans l'export : aucun calcul côté client. Les valeurs négatives ont
     // été ramenées à 0 à l'export (terrain localement plus élevé que la
     // cote de référence) ; hauteurEauNote explique le cas échéant pourquoi.
+    let estimationBody;
     if (hasValue(eff.hauteurEauEstimeeM)) {
       const h = parseFloat(eff.hauteurEauEstimeeM);
-      const chips = [`<div class="figure-chip"><strong>${h.toFixed(2)} m</strong>hauteur d'eau estimée</div>`];
-      sections.push(
-        section(
-          "🌊",
-          "Hauteur d'eau estimée (crue de référence)",
-          `<div class="figure-row">${chips.join("")}</div>` +
-            (eff.hauteurEauNote ? `<p class="text-muted">${escapeHtml(eff.hauteurEauNote)}</p>` : "") +
-            `<p class="text-muted">Estimation indicative obtenue par modélisation (altimétrie LiDAR HD et
-             cotes de crue historique officielles), au centroïde du bâtiment. Elle ne remplace pas une
-             étude hydraulique et n'a pas de valeur réglementaire opposable.</p>`
-        )
+      estimationBody = `
+        <div class="band-estimation-label">Hauteur d'eau estimée au-dessus de mon 1er plancher</div>
+        <div class="band-estimation-figure">${h.toFixed(2)} m</div>
+        ${eff.hauteurEauNote ? `<p class="text-muted">${escapeHtml(eff.hauteurEauNote)}</p>` : ""}
+        <p class="text-muted">Estimation indicative obtenue par modélisation (altimétrie LiDAR HD et cotes de
+        crue historique officielles), au centroïde du bâtiment. Elle ne remplace pas une étude hydraulique
+        et n'a pas de valeur réglementaire opposable.</p>
+      `;
+    } else {
+      estimationBody = `<p class="text-muted">Hauteur d'eau non calculée pour ce bâtiment (donnée indisponible, ou terrain localement au-dessus de la cote de référence).</p>`;
+    }
+
+    // --- Bandeau « Mesures de protection et d'adaptation » (diagnostic,
+    //     zone refuge, aides financières) ---
+    const mesureBlocks = [];
+    if (eff.diagnostic) {
+      mesureBlocks.push(`<div class="measure-block"><h4>🔎 Diagnostic de vulnérabilité</h4><p>${escapeHtml(eff.diagnostic)}</p></div>`);
+    }
+    if (eff.zoneRefuge || eff.refugeCategorie) {
+      const isObligatoire = (eff.refugeCategorie || "").startsWith("Obligatoire");
+      mesureBlocks.push(
+        `<div class="measure-block"><h4>🛟 Zone refuge</h4><p>${escapeHtml(eff.zoneRefuge || eff.refugeCategorie)}</p>` +
+          (isObligatoire
+            ? `<p class="text-muted">Une zone refuge est un niveau du bâtiment situé au-dessus des plus hautes eaux connues, permettant d'attendre les secours en cas de crue.</p>`
+            : "") +
+          `</div>`
       );
     }
-
-    // --- Correction déclarative du visiteur ---
-    sections.push(renderCorrectionBlock(p, override));
-
-    // --- Règles de construction et travaux (régime + obligations liées à la
-    //     typologie + seuils de travaux sur l'existant) ---
-    {
-      let travauxHtml = "";
-      if (eff.empriseFiable === "Oui" && (eff.annexeMaxM2 || eff.extensionHebergementM2 || eff.extensionActiviteM2)) {
-        const chips = [];
-        if (eff.empriseSolM2) {
-          chips.push(`<div class="figure-chip"><strong>${eff.empriseSolM2} m²</strong>emprise au sol actuelle</div>`);
-        }
-        if (eff.annexeMaxM2) {
-          chips.push(`<div class="figure-chip"><strong>${eff.annexeMaxM2} m²</strong>annexe autorisée (création)</div>`);
-        }
-        if (eff.extensionHebergementM2) {
-          chips.push(
-            `<div class="figure-chip"><strong>${eff.extensionHebergementM2} m²</strong>extension hébergement</div>`
-          );
-        }
-        if (eff.extensionActiviteM2) {
-          chips.push(
-            `<div class="figure-chip"><strong>${eff.extensionActiviteM2} m²</strong>extension activité (approx.)</div>`
-          );
-        } else if (eff.extensionActiviteNote) {
-          chips.push(`<div class="figure-chip">Extension activité : voir note</div>`);
-        }
-        travauxHtml =
-          `<div class="figure-row">${chips.join("")}</div>` +
-          (eff.extensionActiviteNote ? `<p class="text-muted">${escapeHtml(eff.extensionActiviteNote)}</p>` : "") +
-          `<p class="text-muted">Seuils calculés à partir de la géométrie du bâtiment (emprise au sol réelle) ; à confirmer par un professionnel avant tout dépôt de dossier.</p>`;
-      } else if (eff.empriseFiable && eff.empriseFiable.startsWith("Non")) {
-        travauxHtml = `<p class="text-muted">Emprise au sol trop réduite pour un calcul de seuil fiable à partir des données disponibles (annexe, abri...). Se référer directement au règlement du PPRi.</p>`;
-      }
-      sections.push(
-        section(
-          "🏗️",
-          "Règles de construction et travaux",
-          `<p>${escapeHtml(eff.regime || "Consultez le règlement du PPRi pour le régime applicable à ce bâtiment.")}</p>` +
-            (eff.obligationsTypologie ? `<p>${escapeHtml(eff.obligationsTypologie)}</p>` : "") +
-            travauxHtml
-        )
-      );
-    }
-
-    // --- Mesures recommandées ou obligatoires (diagnostic + zone refuge) ---
-    {
-      const blocks = [];
-      if (eff.diagnostic) {
-        blocks.push(`<div class="measure-block"><h4>🔎 Diagnostic de vulnérabilité</h4><p>${escapeHtml(eff.diagnostic)}</p></div>`);
-      }
-      if (eff.zoneRefuge || eff.refugeCategorie) {
-        const isObligatoire = (eff.refugeCategorie || "").startsWith("Obligatoire");
-        blocks.push(
-          `<div class="measure-block"><h4>🛟 Zone refuge</h4><p>${escapeHtml(eff.zoneRefuge || eff.refugeCategorie)}</p>` +
-            (isObligatoire
-              ? `<p class="text-muted">Une zone refuge est un niveau du bâtiment situé au-dessus des plus hautes eaux connues, permettant d'attendre les secours en cas de crue.</p>`
-              : "") +
-            `</div>`
-        );
-      }
-      if (blocks.length) {
-        sections.push(section("⚠️", "Mesures recommandées ou obligatoires", blocks.join("")));
-      }
-    }
-
-    // --- Aides financières ---
     if (eff.eligibiliteFprnm) {
-      sections.push(section("💶", "Aides financières (Fonds Barnier)", `<p>${escapeHtml(eff.eligibiliteFprnm)}</p>`));
+      mesureBlocks.push(`<div class="measure-block"><h4>💶 Aides financières (Fonds Barnier)</h4><p>${escapeHtml(eff.eligibiliteFprnm)}</p></div>`);
     }
+    const mesuresBody = mesureBlocks.length
+      ? mesureBlocks.join("")
+      : `<p class="text-muted">Aucune mesure spécifique identifiée pour ce bâtiment au-delà des règles générales de travaux ci-dessous.</p>`;
 
-    // --- Détails techniques (repliés) ---
-    // Champs bruts utiles pour un usage administratif/technique (élus,
-    // techniciens, bureaux d'études) : codes et identifiants stables,
-    // complémentaires du texte déjà mis en forme dans les sections
-    // ci-dessus (qui restent la référence pour le contenu réglementaire).
+    // --- Bandeau « Règles de travaux applicables à mes projets » (régime +
+    //     obligations liées à la typologie + seuils de travaux sur l'existant) ---
+    let travauxHtml = "";
+    if (eff.empriseFiable === "Oui" && (eff.annexeMaxM2 || eff.extensionHebergementM2 || eff.extensionActiviteM2)) {
+      const chips = [];
+      if (eff.empriseSolM2) {
+        chips.push(`<div class="figure-chip"><strong>${eff.empriseSolM2} m²</strong>emprise au sol actuelle</div>`);
+      }
+      if (eff.annexeMaxM2) {
+        chips.push(`<div class="figure-chip"><strong>${eff.annexeMaxM2} m²</strong>annexe autorisée (création)</div>`);
+      }
+      if (eff.extensionHebergementM2) {
+        chips.push(`<div class="figure-chip"><strong>${eff.extensionHebergementM2} m²</strong>extension hébergement</div>`);
+      }
+      if (eff.extensionActiviteM2) {
+        chips.push(`<div class="figure-chip"><strong>${eff.extensionActiviteM2} m²</strong>extension activité (approx.)</div>`);
+      } else if (eff.extensionActiviteNote) {
+        chips.push(`<div class="figure-chip">Extension activité : voir note</div>`);
+      }
+      travauxHtml =
+        `<div class="figure-row">${chips.join("")}</div>` +
+        (eff.extensionActiviteNote ? `<p class="text-muted">${escapeHtml(eff.extensionActiviteNote)}</p>` : "") +
+        `<p class="text-muted">Seuils calculés à partir de la géométrie du bâtiment (emprise au sol réelle) ; à confirmer par un professionnel avant tout dépôt de dossier.</p>`;
+    } else if (eff.empriseFiable && eff.empriseFiable.startsWith("Non")) {
+      travauxHtml = `<p class="text-muted">Emprise au sol trop réduite pour un calcul de seuil fiable à partir des données disponibles (annexe, abri...). Se référer directement au règlement du PPRi.</p>`;
+    }
+    const travauxBody = `
+      <p>${escapeHtml(eff.regime || "Consultez le règlement du PPRi pour le régime applicable à ce bâtiment.")}</p>
+      ${eff.obligationsTypologie ? `<p>${escapeHtml(eff.obligationsTypologie)}</p>` : ""}
+      ${travauxHtml}
+    `;
+
+    const bands = [
+      { id: "zonage", label: "Zonage", body: zonageBody, open: false },
+      { id: "profil", label: "Profil de mon bien", body: profilBody, open: false },
+      { id: "estimation", label: "Estimation de mon exposition au risque (inondation)", body: estimationBody, open: true },
+      { id: "mesures", label: "Mesures de protection et d'adaptation concernant mon bien", body: mesuresBody, open: false },
+      { id: "travaux", label: "Règles de travaux applicables à mes projets", body: travauxBody, open: false },
+    ];
+
+    let html = `<div class="band-accordion">`;
+    html += bands
+      .map(
+        (b) => `
+      <details class="band-item band-item-${b.id}" ${b.open ? "open" : ""}>
+        <summary class="band-head"><span>${escapeHtml(b.label)}</span></summary>
+        <div class="band-body">${b.body}</div>
+      </details>
+    `
+      )
+      .join("");
+    html += `</div>`;
+
+    // --- Détails techniques (repliés par défaut ; dépliés d'office pour le
+    //     parcours Services techniques, fiche enrichie pour les
+    //     techniciens/bureaux d'études) ---
     const techRows = [];
     if (hasValue(eff.zoneCode)) techRows.push(techRow("Code de zone (PPRi)", eff.zoneCode));
     if (hasValue(eff.zonesIntersectees)) techRows.push(techRow("Zones intersectées", eff.zonesIntersectees));
@@ -784,6 +1030,8 @@
     if (hasValue(eff.altitudeSolLidarHdM)) techRows.push(techRow("Altitude sol (LiDAR HD)", eff.altitudeSolLidarHdM + " m NGF"));
     if (hasValue(eff.coteReferencePheM)) techRows.push(techRow("Cote de référence PHE", eff.coteReferencePheM + " m NGF"));
     if (hasValue(eff.coteReferenceMethode)) techRows.push(techRow("Méthode de la cote de référence", eff.coteReferenceMethode));
+    if (hasValue(eff.distanceIsocoteM)) techRows.push(techRow("Distance à l'isocote (interpolation PHE)", eff.distanceIsocoteM + " m"));
+    if (eff.etudeGeotechniqueG2) techRows.push(techRow("Étude géotechnique G2 AVP", "Obligatoire (zone GHi)"));
     if (eff.__centroid) {
       techRows.push(
         techRow("Coordonnées (WGS84)", `${eff.__centroid.lat.toFixed(6)}, ${eff.__centroid.lng.toFixed(6)}`)
@@ -792,15 +1040,15 @@
     if (hasValue(eff.id)) techRows.push(techRow("Identifiant BD TOPO", eff.id));
 
     if (techRows.length) {
-      sections.push(`
-        <details class="tech-details">
+      html += `
+        <details class="tech-details" ${appMode === "services" ? "open" : ""}>
           <summary>Détails techniques (pour élus, techniciens, bureaux d'études)</summary>
           <dl>${techRows.join("")}</dl>
         </details>
-      `);
+      `;
     }
 
-    sections.push(`
+    html += `
       <p class="text-muted" style="margin-top:18px;font-size:0.8rem">
         Ces informations sont calculées automatiquement à partir du règlement du
         PPRi et de données géographiques (IGN BD TOPO), le cas échéant complétées
@@ -809,14 +1057,10 @@
         de la mairie ou la DDT de la Haute-Garonne. Voir la page
         <a href="mentions-legales.html">mentions légales</a>.
       </p>
-    `);
+    `;
 
-    panelBody.innerHTML = sections.join("");
+    panelBody.innerHTML = html;
     wireCorrectionBlock(p);
-  }
-
-  function section(icon, title, html) {
-    return `<section class="detail-block"><h3>${icon} ${escapeHtml(title)}</h3>${html}</section>`;
   }
 
   function techRow(label, value) {
@@ -824,10 +1068,40 @@
   }
 
   function showWelcomePanel() {
+    panelCloseBtn.hidden = true;
+
+    if (appMode === "services") {
+      panelZoneDot.style.background = "var(--mode-services)";
+      panelTitle.textContent = "Socle commun — toutes zones inondables";
+      panelSubtitle.textContent = "Quint-Fonsegrives - PPRi Marcaissonne-Sauneseillonne";
+      panelBody.innerHTML = `
+        <div class="intro-block">
+          <p>
+            Cliquez sur une zone du zonage réglementaire (ou directement sur un
+            bâtiment) pour afficher le socle commun applicable et ses
+            éventuelles exceptions, ou choisissez une zone ci-dessous.
+          </p>
+        </div>
+        <div class="zone-chip-row">
+          ${Object.keys(ZONE_META)
+            .map(
+              (code) =>
+                `<button type="button" class="zone-chip" style="background:${ZONE_META[code].color}" data-zone="${code}">Zone ${escapeHtml(
+                  ZONE_META[code].label
+                )} (${code}) — ${escapeHtml(ZONE_META[code].desc)}</button>`
+            )
+            .join("")}
+        </div>
+      `;
+      panelBody.querySelectorAll(".zone-chip").forEach((btn) => {
+        btn.addEventListener("click", () => renderZonePanel(btn.dataset.zone));
+      });
+      return;
+    }
+
     panelZoneDot.style.background = "var(--color-primary)";
     panelTitle.textContent = "Mes obligations face au risque inondation";
     panelSubtitle.textContent = "Quint-Fonsegrives - PPRi Marcaissonne-Sauneseillonne";
-    panelCloseBtn.hidden = true;
     panelBody.innerHTML = `
       <div class="intro-block">
         <p>
@@ -835,11 +1109,14 @@
           ci-dessus, pour connaître les obligations réglementaires liées au
           risque inondation qui s'appliquent à ce bâtiment.
         </p>
-        <p class="text-muted">
+        ${
+          appMode === "elus"
+            ? `<p class="text-muted">Le tableau de bord communal (agrégats, chapitre 4 du règlement) est ouvert dans le panneau en haut à droite.</p>`
+            : `<p class="text-muted">
           Cet outil s'adresse aussi bien aux habitants qu'aux gestionnaires
-          d'établissements recevant du public (ERP), d'activités économiques,
-          ainsi qu'aux élus et techniciens.
-        </p>
+          d'établissements recevant du public (ERP) ou d'activités économiques.
+        </p>`
+        }
         <div class="welcome-cta">
           <a class="btn primary" href="#" id="cta-locate">📍 Me localiser</a>
           <a class="btn" href="glossaire.html">📖 Glossaire</a>
@@ -1080,18 +1357,25 @@
       predicate: (p) => (p.zoneRefuge || "").includes("ATTENTION"),
     },
     {
-      id: "typologie-bdnb",
+      id: "typologie-connue",
       group: "Typologie et fiabilité des données",
       layerKey: "batiments",
-      label: "Typologie complétée via la BDNB (à vérifier terrain)",
-      predicate: (p) => !!p.typologieSource,
+      // Compte BD TOPO + BDNB confondues (voir docs/METHODOLOGIE.md) : le
+      // libellé précédent (« via la BDNB ») ne reflétait que l'une des deux
+      // sources alors que le prédicat comptait déjà les deux.
+      label: "Typologie connue (BD TOPO ou BDNB)",
+      predicate: (p) => hasValue(p.typologieSource),
     },
     {
       id: "typologie-indeterminee",
       group: "Typologie et fiabilité des données",
       layerKey: "batiments",
       label: "Typologie encore indéterminée",
-      predicate: (p) => (p.typologie || "").startsWith("Typologie indéterminée"),
+      // !hasValue(typologieSource) plutôt qu'un préfixe sur le libellé
+      // `typologie` : ce dernier est exporté sans accents (voir
+      // scripts/export_geojson.py), « Typologie indéterminée » (avec accent)
+      // ne le matchait donc jamais et cette tuile affichait toujours 0.
+      predicate: (p) => !hasValue(p.typologieSource),
     },
     {
       id: "emprise-non-fiable",
@@ -1252,6 +1536,45 @@
     dashboardGroups.querySelectorAll(".dashboard-tile").forEach((btn) => {
       btn.addEventListener("click", () => toggleDashboardFilter(btn.dataset.tileId));
     });
+
+    // --- Statistiques de synthèse (bandeau du haut, espace Élus & collectivités) ---
+    const total = data.batZone.features.length;
+    const avecEau = countMatches(
+      data.batZone.features,
+      (p) => hasValue(p.hauteurEauEstimeeM) && parseFloat(p.hauteurEauEstimeeM) > 0
+    );
+    const indet = countMatches(data.batZone.features, (p) => !hasValue(p.typologieSource));
+    const zoneLine = CONFIG.zoneOrder
+      .map((z) => ({ z, n: countMatches(data.batZone.features, (p) => p.zoneCode === z) }))
+      .filter((x) => x.n > 0)
+      .map((x) => `${x.z} ${x.n}`)
+      .join(" · ");
+    const statsBox = document.getElementById("dashboard-stats");
+    if (statsBox) {
+      statsBox.innerHTML = `
+        <div class="dashboard-stat"><strong>${total}</strong><span>bâtiments concernés par le PPRi</span></div>
+        <div class="dashboard-stat"><strong>${avecEau}</strong><span>avec hauteur d'eau estimée &gt; 0</span></div>
+        <div class="dashboard-stat"><strong>${escapeHtml(zoneLine)}</strong><span>bâtiments par zone réglementaire</span></div>
+        <div class="dashboard-stat"><strong>${indet}</strong><span>typologie indéterminée</span></div>
+      `;
+    }
+
+    // --- Obligations de la commune (chapitre 4 du règlement) ---
+    const chapitre4Box = document.getElementById("dashboard-chapitre4");
+    if (chapitre4Box) {
+      chapitre4Box.innerHTML = OBLIGATIONS_COLLECTIVITE.map(
+        (item) => `
+        <div class="chapitre4-card">
+          <div class="chapitre4-head">
+            <span class="chapitre4-title">${escapeHtml(item.code)} · ${escapeHtml(item.title)}</span>
+            <span class="chapitre4-delai">${escapeHtml(item.delai)}</span>
+          </div>
+          <p>${escapeHtml(item.text)}</p>
+          <div class="chapitre4-ref">Règlement PPRi, §${escapeHtml(item.code)} — public : ${escapeHtml(item.public)}</div>
+        </div>
+      `
+      ).join("");
+    }
   }
 
   function toggleDashboardFilter(tileId) {
@@ -1371,6 +1694,9 @@
   /* ----------------------------------------------------------------------
    * Démarrage
    * -------------------------------------------------------------------- */
-  showWelcomePanel();
+  // Les données sont chargées dès l'arrivée sur l'écran d'accueil (avant
+  // tout choix de parcours) : la carte est prête dès que l'utilisateur
+  // choisit Habitants, Élus & collectivités ou Services techniques
+  // (setMode), sans attente supplémentaire.
   init();
 })();
